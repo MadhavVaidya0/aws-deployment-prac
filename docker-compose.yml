@@ -1,0 +1,49 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: cabbuddy-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cabbuddy
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: cabbuddy-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build: ./cabbuddy-backend
+    container_name: cabbuddy-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cabbuddy?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      STRIPE_SECRET_KEY: sk_test_1234567890
+    restart: always
+
+  frontend:
+    build: ./cabBuddy
+    container_name: cabbuddy-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  mysql_data:
+
